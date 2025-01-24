@@ -1,0 +1,6 @@
+# meam523
+Final project for MEAM 523 by Aaron Weinstein and Nadia Kreciglowa
+
+Included Files:
+runsim.m    Run this file in matlab to run the simulation. When prompted,
+enter a filename to save a .avi video in the animations folder

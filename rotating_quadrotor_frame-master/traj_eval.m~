@@ -1,0 +1,75 @@
+function hive = traj_eval(hive, dt)
+
+%% Linear Lissajous curve
+lin_a = [2 1 0.5]';
+lin_o = [1 2 1]';
+lin_d = [pi/2 0 0]';
+
+%x0 = [1 1 1]';
+%hive.des.x_0_w      = x0;
+%hive.des.x_0_w_dot  = zeros(3,1);
+%hive.des.x_0_w_ddot = zeros(3,1);
+%hive.des.x_0_w_3dot = zeros(3,1);
+%hive.des.x_0_w_4dot = zeros(3,1);
+
+x0 = -lin_a .* sin(lin_d);
+
+hive.des.x_0_w      = x0 + lin_a .* sin(lin_o * hive.t + lin_d);
+hive.des.x_0_w_dot  = lin_a .* lin_o .* cos(lin_o*hive.t + lin_d);
+hive.des.x_0_w_ddot = -lin_a .* lin_o.^2 .* sin(lin_o*hive.t + lin_d);
+%hive.des.x_0_w_3dot = -lin_a .* lin_o.^3 .* cos(lin_o*hive.t + lin_d);
+
+%added by bruno
+
+%hive.des.x_0_w = [1 1 1]';
+%hive.des.x_0_w_dot = [0 0 0]';
+%hive.des.x_0_w_ddot = [0 0 0]';
+%hive.des.x_0_w_4dot = lin_a .* lin_o.^4 .* sin(lin_o*hive.t + lin_d);
+
+%% Angular
+mode = 4;
+
+if mode == 2
+    % Sinusoidal rotations
+    max_w = [.2 .2 .2]';
+    ome_w = [.5 .5 .5]';
+    phi_w = [0 pi/3 2*pi/3]';
+    
+    hive.des.omega_0_0 = ...
+        max_w .* sin(ome_w.*hive.t + phi_w);
+    hive.des.omega_0_0_dot = ...
+        max_w .* ome_w .* cos(ome_w.*hive.t + phi_w);
+    hive.des.omega_0_0_ddot = ...
+        -max_w .* ome_w.^2 .* sin(ome_w.*hive.t + phi_w);
+elseif mode == 3
+    % Constant angular velocity
+    hive.des.omega_0_0 = [0.0 0 1.0]';
+    hive.des.omega_0_0_dot = [0 0 0]';
+    hive.des.omega_0_0_ddot = [0 0 0]';
+    hive.des.R_0_w = expm(makeskew(hive.des.omega_0_0*dt)) * hive.des.R_0_w;
+else
+    % Constant attitude
+    if hive.t<=pi/4
+        angle = hive.t;
+    
+    elseif hive.t >= pi/4 && hive.t<=pi/2
+        angle = pi/4-(hive.t -pi/4);
+   
+        
+    elseif hive.t >=pi/2 && hive.t<=2*pi/3
+        angle = hive.t - pi/4;
+    
+    elseif hive.t>= 2*pi/3
+        angle = pi/4 - (hive.t - 2*pi/3);
+    end
+    hive.des.R_0_w = rotx(0)*roty(0)*rotz(0);
+    hive.des.omega_0_0 = [0 0 0]';
+    hive.des.omega_0_0_dot = zeros(3,1);
+    %hive.des.omega_0_0_ddot = zeros(3,1);
+    
+    %added by bruno
+    %hive.des.omega_0_0_3dot = zeros(3,1);
+    
+end
+
+end
